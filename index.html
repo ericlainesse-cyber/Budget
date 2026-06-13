@@ -1,125 +1,27 @@
 <!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget Global</title>
-
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-
-<body>
-
-<header>
-    <h1>💰 Budget Global</h1>
-</header>
-
-<section class="budget-card">
-    <h2>Budget Mensuel</h2>
-
-    <input type="number" id="budgetInput" placeholder="Budget total">
-
-    <button id="saveBudgetBtn">
-        Enregistrer
-    </button>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Budget Global</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<header><h1>Budget Global</h1><button id="themeToggle">🌙</button></header>
+<section class="cards">
+<div id="budgetCard"></div><div id="spentCard"></div><div id="remainingCard"></div>
 </section>
-
-<section class="dashboard">
-
-    <div class="card">
-        <h3>Budget</h3>
-        <span id="budgetTotal">0 $</span>
-    </div>
-
-    <div class="card">
-        <h3>Revenus</h3>
-        <span id="revenusTotal">0 $</span>
-    </div>
-
-    <div class="card">
-        <h3>Dépenses</h3>
-        <span id="depensesTotal">0 $</span>
-    </div>
-
-    <div class="card">
-        <h3>Disponible</h3>
-        <span id="restantTotal">0 $</span>
-    </div>
-
-</section>
-
-<section class="transaction-form">
-
-    <h2>Ajouter une transaction</h2>
-
-    <select id="type">
-        <option value="revenu">Revenu</option>
-        <option value="depense">Dépense</option>
-    </select>
-
-    <input type="text"
-           id="description"
-           placeholder="Description">
-
-    <select id="categorie">
-
-        <option>Alimentation</option>
-        <option>Transport</option>
-        <option>Logement</option>
-        <option>Loisirs</option>
-        <option>Santé</option>
-        <option>Autres</option>
-
-    </select>
-
-    <input type="number"
-           id="montant"
-           placeholder="Montant">
-
-    <button id="addTransactionBtn">
-        Ajouter
-    </button>
-
-</section>
-
-<section class="graph-section">
-
-    <h2>Répartition</h2>
-
-    <canvas id="budgetChart"></canvas>
-
-</section>
-
-<section class="transactions">
-
-    <h2>Historique</h2>
-
-    <table>
-
-        <thead>
-        <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Catégorie</th>
-            <th>Montant</th>
-        </tr>
-        </thead>
-
-        <tbody id="transactionsTable"></tbody>
-
-    </table>
-
-</section>
-
-<script src="js/sheets.js"></script>
-<script src="js/alerts.js"></script>
-<script src="js/charts.js"></script>
+<input id="search" placeholder="Recherche">
+<form id="txForm">
+<input id="date" type="date" required>
+<select id="type"><option>Depense</option><option>Revenu</option></select>
+<input id="description" placeholder="Description" required>
+<input id="category" placeholder="Catégorie">
+<input id="amount" type="number" step="0.01" required>
+<input id="attachment" type="file">
+<button type="submit">Enregistrer</button>
+</form>
+<table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Montant</th><th>Actions</th></tr></thead>
+<tbody id="transactions"></tbody></table>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
 <script src="js/app.js"></script>
-
-</body>
-</html>
+</body></html>

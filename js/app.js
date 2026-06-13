@@ -1,188 +1,27 @@
-let budget =
-Number(
-localStorage.getItem("budget")
-) || 0;
 
-let transactions =
-JSON.parse(
-localStorage.getItem(
-"transactions"
-)
-) || [];
+let rows=[];
+const txBody=document.getElementById('transactions');
+document.getElementById('themeToggle').onclick=()=>document.body.classList.toggle('dark');
 
-const budgetInput =
-document.getElementById(
-"budgetInput"
-);
+document.getElementById('txForm').onsubmit=async e=>{
+e.preventDefault();
+const data={
+action:'save',
+date:date.value,type:type.value,description:description.value,
+category:category.value,amount:amount.value
+};
+await saveTransaction(data);
+load();
+};
 
-document
-.getElementById(
-"saveBudgetBtn"
-)
-.addEventListener(
-"click",
-saveBudget
-);
-
-document
-.getElementById(
-"addTransactionBtn"
-)
-.addEventListener(
-"click",
-addTransaction
-);
-
-function saveBudget(){
-
-    budget =
-    Number(
-        budgetInput.value
-    );
-
-    localStorage.setItem(
-        "budget",
-        budget
-    );
-
-    render();
+async function load(){
+try{rows=await getTransactions();render();}catch(e){console.error(e);}
 }
-
-async function addTransaction(){
-
-    const transaction = {
-
-        date:
-        new Date()
-        .toLocaleDateString(),
-
-        type:
-        document
-        .getElementById("type")
-        .value,
-
-        description:
-        document
-        .getElementById(
-            "description"
-        )
-        .value,
-
-        categorie:
-        document
-        .getElementById(
-            "categorie"
-        )
-        .value,
-
-        montant:
-        Number(
-            document
-            .getElementById(
-                "montant"
-            )
-            .value
-        )
-    };
-
-    transactions.push(
-        transaction
-    );
-
-    localStorage.setItem(
-        "transactions",
-        JSON.stringify(
-            transactions
-        )
-    );
-
-    await saveTransactionCloud(
-        transaction
-    );
-
-    render();
-}
-
 function render(){
-
-    let revenus = 0;
-    let depenses = 0;
-
-    transactions.forEach(t=>{
-
-        if(
-            t.type ===
-            "revenu"
-        ){
-
-            revenus +=
-            t.montant;
-
-        }else{
-
-            depenses +=
-            t.montant;
-        }
-    });
-
-    document
-    .getElementById(
-        "budgetTotal"
-    )
-    .innerText =
-    budget + " $";
-
-    document
-    .getElementById(
-        "revenusTotal"
-    )
-    .innerText =
-    revenus + " $";
-
-    document
-    .getElementById(
-        "depensesTotal"
-    )
-    .innerText =
-    depenses + " $";
-
-    document
-    .getElementById(
-        "restantTotal"
-    )
-    .innerText =
-    (budget - depenses)
-    + " $";
-
-    const tbody =
-    document
-    .getElementById(
-        "transactionsTable"
-    );
-
-    tbody.innerHTML = "";
-
-    transactions.forEach(t=>{
-
-        tbody.innerHTML += `
-        <tr>
-            <td>${t.date}</td>
-            <td>${t.type}</td>
-            <td>${t.description}</td>
-            <td>${t.categorie}</td>
-            <td>${t.montant}$</td>
-        </tr>`;
-    });
-
-    updateChart(
-        revenus,
-        depenses
-    );
-
-    verifierBudget(
-        budget,
-        depenses
-    );
+txBody.innerHTML='';
+(rows||[]).forEach(r=>{
+txBody.innerHTML+=`<tr><td>${r.date||''}</td><td>${r.type||''}</td><td>${r.description||''}</td><td>${r.amount||''}</td><td><button onclick="deleteTransaction('${r.id}')">Supprimer</button></td></tr>`;
+});
 }
-
-render();
+load();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js');}
