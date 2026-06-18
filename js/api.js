@@ -1,5 +1,5 @@
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxHWIUB0TuiswGes2exD3qIioEzUhebGEcVBZPE0F8mbsPA6ywYnFzD8d2GquWGlla2qA/exec";
+"https://script.google.com/macros/s/AKfycbzuwY3n5UE5hPE3U97FC_pHCmqCkiu9Hxom1tR2OL6KL1ZDzURiehSKXlDOxHmvIPJOpA/exec";
 
 async function getTransactions() {
 
