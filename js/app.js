@@ -47,15 +47,32 @@ const alertContainer =
    INITIALISATION
 ===================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-    budgetInput.value = budgetGlobal;
+        try {
 
-    afficherTransactions();
-    mettreAJourDashboard();
-    verifierAlertes();
+            transactions =
+                await getTransactions();
 
-});
+            sauvegarder();
+
+        } catch(error) {
+
+            console.error(error);
+
+        }
+
+        budgetInput.value =
+            budgetGlobal;
+
+        afficherTransactions();
+        mettreAJourDashboard();
+        verifierAlertes();
+
+    }
+);
 
 /* =====================================
    BUDGET
@@ -118,6 +135,9 @@ transactionForm.addEventListener(
         };
 
         transactions.push(transaction);
+	await addTransactionAPI(
+	    transaction
+	);
 
         sauvegarder();
         afficherTransactions();
@@ -308,6 +328,7 @@ function supprimerTransaction(id) {
             t => t.id !== id
         );
 
+    await deleteTransactionAPI(id);	
     sauvegarder();
 
     afficherTransactions();
@@ -420,6 +441,9 @@ editForm.addEventListener(
 
         sauvegarder();
 
+	await updateTransactionAPI(
+	    transaction
+	);
         afficherTransactions();
         mettreAJourDashboard();
         verifierAlertes();
