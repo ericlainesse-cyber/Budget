@@ -1,59 +1,76 @@
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxQBHPDv2Jm8_Hzo92esXMZxubRUlbrctC5P_QeCHG7E26RhmjN-oiGUU4CV1M67k6yRg/exec";
+
 async function getTransactions() {
 
   const response =
-    await fetch(API_URL);
+    await fetch(
+      `${API_URL}?action=list`
+    );
 
-  return await response.json();
-
-}
-
-async function addTransaction(data) {
-
-  return await fetch(API_URL,{
-
-    method:"POST",
-
-    body: JSON.stringify({
-
-      action:"add",
-      ...data
-
-    })
-
-  });
+  return response.json();
 
 }
 
-async function updateTransaction(data){
+async function addTransactionAPI(data) {
 
-  return await fetch(API_URL,{
+  const response =
+    await fetch(API_URL, {
 
-    method:"POST",
+      method: "POST",
 
-    body: JSON.stringify({
+      body: JSON.stringify({
 
-      action:"update",
-      ...data
+        action: "add",
 
-    })
+        ...data
 
-  });
+      })
+
+    });
+
+  return response.json();
 
 }
 
-async function deleteTransaction(id){
+async function updateTransactionAPI(data) {
 
-  return await fetch(API_URL,{
+  const response =
+    await fetch(API_URL, {
 
-    method:"POST",
+      method: "POST",
 
-    body: JSON.stringify({
+      body: JSON.stringify({
 
-      action:"delete",
-      id
+        action: "update",
 
-    })
+        ...data
 
-  });
+      })
+
+    });
+
+  return response.json();
+
+}
+
+async function deleteTransactionAPI(id) {
+
+  const response =
+    await fetch(API_URL, {
+
+      method: "POST",
+
+      body: JSON.stringify({
+
+        action: "delete",
+
+        id
+
+      })
+
+    });
+
+  return response.json();
 
 }
