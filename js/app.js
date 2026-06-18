@@ -1,160 +1,688 @@
-let transactions = [];
+/* =====================================
+   BUDGET GLOBAL APP
+===================================== */
 
-const tbody =
-document.querySelector(
-"#transactions tbody"
-);
+let transactions = JSON.parse(
+    localStorage.getItem("transactions")
+) || [];
 
-async function loadData(){
+let budgetGlobal = Number(
+    localStorage.getItem("budgetGlobal")
+) || 0;
 
-  transactions =
-    await getTransactions();
+let chart = null;
 
-  render();
+/* =====================================
+   ELEMENTS
+===================================== */
 
-}
+const budgetInput = document.getElementById("budgetInput");
+const saveBudgetBtn = document.getElementById("saveBudgetBtn");
 
-function render(){
+const transactionForm =
+    document.getElementById("transactionForm");
 
-  tbody.innerHTML = "";
+const searchInput =
+    document.getElementById("searchInput");
 
-  const searchValue =
-    document
-    .getElementById("search")
-    .value
-    .toLowerCase();
+const transactionsBody =
+    document.getElementById("transactionsBody");
 
-  const filtered =
-    transactions.filter(t =>
+const budgetTotal =
+    document.getElementById("budgetTotal");
 
-      JSON.stringify(t)
-      .toLowerCase()
-      .includes(searchValue)
+const revenusTotal =
+    document.getElementById("revenusTotal");
 
+const depensesTotal =
+    document.getElementById("depensesTotal");
+
+const soldeRestant =
+    document.getElementById("soldeRestant");
+
+const alertContainer =
+    document.getElementById("alertContainer");
+
+/* =====================================
+   INITIALISATION
+===================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    budgetInput.value = budgetGlobal;
+
+    afficherTransactions();
+    mettreAJourDashboard();
+    verifierAlertes();
+
+});
+
+/* =====================================
+   BUDGET
+===================================== */
+
+saveBudgetBtn.addEventListener("click", () => {
+
+    budgetGlobal = Number(
+        budgetInput.value
     );
 
-  filtered.forEach(t => {
+    localStorage.setItem(
+        "budgetGlobal",
+        budgetGlobal
+    );
 
-    const tr =
-      document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${t.date}</td>
-      <td>${t.description}</td>
-      <td>${t.montant}</td>
-      <td>
-
-      <button
-      class="action edit"
-      onclick="editTransaction('${t.id}')">
-
-      Modifier
-
-      </button>
-
-      <button
-      class="action delete"
-      onclick="removeTransaction('${t.id}')">
-
-      Supprimer
-
-      </button>
-
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-
-  });
-
-  calculateDashboard();
-
-}
-
-function calculateDashboard(){
-
-  let depenses = 0;
-  let revenus = 0;
-
-  transactions.forEach(t => {
-
-    if(t.type === "depense")
-      depenses += Number(t.montant);
-
-    else
-      revenus += Number(t.montant);
-
-  });
-
-  const budget = 10000;
-
-  document.getElementById("budget")
-    .innerText = budget + " $";
-
-  document.getElementById("spent")
-    .innerText = depenses + " $";
-
-  document.getElementById("remaining")
-    .innerText =
-      budget - depenses + " $";
-
-}
-
-document
-.getElementById("search")
-.addEventListener("input",render);
-
-document
-.getElementById("themeToggle")
-.addEventListener("click",() => {
-
-  document.body
-    .classList.toggle("dark");
+    mettreAJourDashboard();
+    verifierAlertes();
 
 });
 
-document
-.getElementById("transactionForm")
-.addEventListener("submit",
-async e => {
+/* =====================================
+   AJOUT TRANSACTION
+===================================== */
 
-  e.preventDefault();
+transactionForm.addEventListener(
+    "submit",
+    (e) => {
 
-  await addTransaction({
+        e.preventDefault();
 
-    date:
-      document.getElementById("date").value,
+        const transaction = {
 
-    type:
-      document.getElementById("type").value,
+            id: Date.now(),
 
-    description:
-      document.getElementById("description").value,
+            date:
+                document.getElementById("date").value,
 
-    category:
-      document.getElementById("category").value,
+            description:
+                document.getElementById("description").value,
 
-    montant:
-      document.getElementById("amount").value
+            montant: Number(
+                document.getElementById("montant").value
+            ),
 
-  });
+            type:
+                document.getElementById("type").value,
 
-  e.target.reset();
+            categorie:
+                document.getElementById("categorie").value,
 
-  loadData();
+            piece:
+                document.getElementById("pieceJointe")
+                .files[0]
+                    ? document.getElementById(
+                        "pieceJointe"
+                      ).files[0].name
+                    : ""
 
-});
+        };
 
-async function removeTransaction(id){
+        transactions.push(transaction);
 
-  if(confirm("Supprimer ?")){
+        sauvegarder();
+        afficherTransactions();
+        mettreAJourDashboard();
+        verifierAlertes();
 
-    await deleteTransaction(id);
+        transactionForm.reset();
 
-    loadData();
+    }
+);
 
-  }
+/* =====================================
+   SAUVEGARDE
+===================================== */
+
+function sauvegarder() {
+
+    localStorage.setItem(
+        "transactions",
+        JSON.stringify(transactions)
+    );
 
 }
 
-loadData();
+/* =====================================
+   CALCULS
+===================================== */
+
+function calculerTotaux() {
+
+    const revenus = transactions
+        .filter(t => t.type === "revenu")
+        .reduce((a,b)=>a+b.montant,0);
+
+    const depenses = transactions
+        .filter(t => t.type === "depense")
+        .reduce((a,b)=>a+b.montant,0);
+
+    const restant =
+        budgetGlobal + revenus - depenses;
+
+    return {
+        revenus,
+        depenses,
+        restant
+    };
+
+}
+
+/* =====================================
+   DASHBOARD
+===================================== */
+
+function mettreAJourDashboard() {
+
+    const totals =
+        calculerTotaux();
+
+    budgetTotal.textContent =
+        formatMontant(budgetGlobal);
+
+    revenusTotal.textContent =
+        formatMontant(totals.revenus);
+
+    depensesTotal.textContent =
+        formatMontant(totals.depenses);
+
+    soldeRestant.textContent =
+        formatMontant(totals.restant);
+
+    mettreAJourGraphique();
+
+}
+
+/* =====================================
+   TABLEAU
+===================================== */
+
+function afficherTransactions(
+    filtre = ""
+) {
+
+    transactionsBody.innerHTML = "";
+
+    const liste = transactions.filter(t =>
+        t.description
+            .toLowerCase()
+            .includes(
+                filtre.toLowerCase()
+            )
+    );
+
+    liste
+    .sort((a,b)=>b.id-a.id)
+    .forEach(transaction => {
+
+        const row =
+            document.createElement("tr");
+
+        row.innerHTML = `
+
+            <td>${transaction.date}</td>
+
+            <td>${transaction.description}</td>
+
+            <td>
+                <span class="badge ${
+                    transaction.type === "revenu"
+                    ? "badge-revenu"
+                    : "badge-depense"
+                }">
+
+                ${
+                    transaction.type
+                }
+
+                </span>
+            </td>
+
+            <td>${transaction.categorie}</td>
+
+            <td>
+                ${formatMontant(
+                    transaction.montant
+                )}
+            </td>
+
+            <td>
+                ${transaction.piece || "-"}
+            </td>
+
+            <td>
+
+                <button
+                    class="btn-warning"
+                    onclick="ouvrirEdition(${transaction.id})">
+
+                    Modifier
+
+                </button>
+
+                <button
+                    class="btn-danger"
+                    onclick="supprimerTransaction(${transaction.id})">
+
+                    Supprimer
+
+                </button>
+
+            </td>
+        `;
+
+        transactionsBody.appendChild(row);
+
+    });
+
+}
+
+/* =====================================
+   RECHERCHE
+===================================== */
+
+searchInput.addEventListener(
+    "input",
+    (e) => {
+
+        afficherTransactions(
+            e.target.value
+        );
+
+    }
+);
+
+/* =====================================
+   SUPPRESSION
+===================================== */
+
+function supprimerTransaction(id) {
+
+    if (
+        !confirm(
+            "Supprimer cette transaction ?"
+        )
+    ) return;
+
+    transactions =
+        transactions.filter(
+            t => t.id !== id
+        );
+
+    sauvegarder();
+
+    afficherTransactions();
+    mettreAJourDashboard();
+    verifierAlertes();
+
+}
+
+/* =====================================
+   MODIFICATION
+===================================== */
+
+const editModal =
+    document.getElementById("editModal");
+
+const editForm =
+    document.getElementById("editForm");
+
+window.ouvrirEdition =
+function(id) {
+
+    const transaction =
+        transactions.find(
+            t => t.id === id
+        );
+
+    document.getElementById(
+        "editId"
+    ).value = transaction.id;
+
+    document.getElementById(
+        "editDate"
+    ).value = transaction.date;
+
+    document.getElementById(
+        "editDescription"
+    ).value = transaction.description;
+
+    document.getElementById(
+        "editMontant"
+    ).value = transaction.montant;
+
+    document.getElementById(
+        "editType"
+    ).value = transaction.type;
+
+    document.getElementById(
+        "editCategorie"
+    ).value = transaction.categorie;
+
+    editModal.classList.remove(
+        "hidden"
+    );
+
+};
+
+document
+.getElementById("closeModal")
+.addEventListener("click", () => {
+
+    editModal.classList.add(
+        "hidden"
+    );
+
+});
+
+editForm.addEventListener(
+    "submit",
+    (e) => {
+
+        e.preventDefault();
+
+        const id = Number(
+            document.getElementById(
+                "editId"
+            ).value
+        );
+
+        const transaction =
+            transactions.find(
+                t => t.id === id
+            );
+
+        transaction.date =
+            document.getElementById(
+                "editDate"
+            ).value;
+
+        transaction.description =
+            document.getElementById(
+                "editDescription"
+            ).value;
+
+        transaction.montant =
+            Number(
+                document.getElementById(
+                    "editMontant"
+                ).value
+            );
+
+        transaction.type =
+            document.getElementById(
+                "editType"
+            ).value;
+
+        transaction.categorie =
+            document.getElementById(
+                "editCategorie"
+            ).value;
+
+        sauvegarder();
+
+        afficherTransactions();
+        mettreAJourDashboard();
+        verifierAlertes();
+
+        editModal.classList.add(
+            "hidden"
+        );
+
+    }
+);
+
+/* =====================================
+   ALERTES
+===================================== */
+
+function verifierAlertes() {
+
+    alertContainer.innerHTML = "";
+
+    const depenses =
+        calculerTotaux().depenses;
+
+    if (budgetGlobal <= 0) return;
+
+    const ratio =
+        depenses / budgetGlobal;
+
+    if (ratio >= 1) {
+
+        ajouterAlerte(
+            "Budget dépassé.",
+            "danger"
+        );
+
+    }
+    else if (ratio >= 0.8) {
+
+        ajouterAlerte(
+            "80% du budget utilisé.",
+            "warning"
+        );
+
+    }
+
+}
+
+function ajouterAlerte(
+    texte,
+    type
+) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        `alert alert-${type}`;
+
+    div.textContent = texte;
+
+    alertContainer.appendChild(div);
+
+}
+
+/* =====================================
+   EXPORT CSV
+===================================== */
+
+document
+.getElementById("exportBtn")
+.addEventListener("click", () => {
+
+    let csv =
+        "Date,Description,Type,Categorie,Montant\n";
+
+    transactions.forEach(t => {
+
+        csv +=
+            `${t.date},${t.description},${t.type},${t.categorie},${t.montant}\n`;
+
+    });
+
+    const blob =
+        new Blob(
+            [csv],
+            {
+                type: "text/csv"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+    a.download =
+        "transactions.csv";
+
+    a.click();
+
+});
+
+/* =====================================
+   CHART.JS
+===================================== */
+
+function mettreAJourGraphique() {
+
+    const ctx =
+        document
+        .getElementById("budgetChart")
+        .getContext("2d");
+
+    const totals =
+        calculerTotaux();
+
+    if (chart) {
+
+        chart.destroy();
+
+    }
+
+    chart = new Chart(ctx, {
+
+        type: "doughnut",
+
+        data: {
+
+            labels: [
+                "Dépenses",
+                "Disponible"
+            ],
+
+            datasets: [
+
+                {
+
+                    data: [
+
+                        totals.depenses,
+
+                        Math.max(
+                            totals.restant,
+                            0
+                        )
+
+                    ]
+
+                }
+
+            ]
+
+        }
+
+    });
+
+}
+
+/* =====================================
+   FORMAT MONÉTAIRE
+===================================== */
+
+function formatMontant(
+    montant
+) {
+
+    return montant.toLocaleString(
+        "fr-CA",
+        {
+            style: "currency",
+            currency: "CAD"
+        }
+    );
+
+}
+
+/* ======================
+   SERVICE WORKER
+====================== */
+
+if (
+    "serviceWorker" in navigator
+) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+            .register(
+                "./service-worker.js"
+            )
+
+            .then(() => {
+
+                console.log(
+                    "Service Worker actif"
+                );
+
+            })
+
+            .catch(error => {
+
+                console.error(
+                    error
+                );
+
+            });
+
+        }
+    );
+
+}
+
+/* ======================
+   INSTALLATION PWA
+====================== */
+
+let deferredPrompt;
+
+window.addEventListener(
+    "beforeinstallprompt",
+    (e) => {
+
+        e.preventDefault();
+
+        deferredPrompt = e;
+
+        const btn =
+            document.getElementById(
+                "installBtn"
+            );
+
+        btn.classList.remove(
+            "hidden"
+        );
+
+    }
+);
+
+document
+.getElementById("installBtn")
+.addEventListener(
+    "click",
+    async () => {
+
+        if (!deferredPrompt)
+            return;
+
+        deferredPrompt.prompt();
+
+        await deferredPrompt.userChoice;
+
+        deferredPrompt = null;
+
+        document
+        .getElementById(
+            "installBtn"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+    }
+);

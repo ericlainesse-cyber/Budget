@@ -2,138 +2,304 @@
 <html lang="fr">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+    <title>Budget Global</title>
 
-<meta
- name="viewport"
- content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#2563eb">
 
-<title>Budget Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
 
-<link
- rel="stylesheet"
- href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <meta name="apple-mobile-web-app-title" content="Budget">
+
+<link rel="apple-touch-icon"
+      href="icons/icon-192.png">
 </head>
 
 <body>
 
-<header>
+<header class="header">
 
-<h1>Budget Pro</h1>
+    <div>
+        <h1>💰 Budget Global</h1>
+        <p>Suivi des revenus et dépenses</p>
+    </div>
 
-<button id="themeToggle">
-🌙
-</button>
+    <button id="installBtn" class="btn-primary hidden">
+        Installer l'application
+    </button>
 
 </header>
 
-<section id="dashboard">
+<main class="container">
 
-<div class="card">
+    <!-- TABLEAU DE BORD -->
 
-<h3>Budget</h3>
+    <section class="dashboard">
 
-<span id="budget">
-0 $
-</span>
+        <div class="card budget">
+            <h3>Budget Total</h3>
+            <span id="budgetTotal">0 $</span>
+        </div>
+
+        <div class="card revenu">
+            <h3>Revenus</h3>
+            <span id="revenusTotal">0 $</span>
+        </div>
+
+        <div class="card depense">
+            <h3>Dépenses</h3>
+            <span id="depensesTotal">0 $</span>
+        </div>
+
+        <div class="card restant">
+            <h3>Disponible</h3>
+            <span id="soldeRestant">0 $</span>
+        </div>
+
+    </section>
+
+    <!-- BUDGET -->
+
+    <section class="panel">
+
+        <h2>Budget Global</h2>
+
+        <div class="budget-form">
+
+            <input
+                type="number"
+                id="budgetInput"
+                placeholder="Montant du budget">
+
+            <button
+                id="saveBudgetBtn"
+                class="btn-primary">
+
+                Enregistrer
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- AJOUT TRANSACTION -->
+
+    <section class="panel">
+
+        <h2>Nouvelle transaction</h2>
+
+        <form id="transactionForm">
+
+            <div class="grid">
+
+                <input
+                    type="date"
+                    id="date"
+                    required>
+
+                <input
+                    type="text"
+                    id="description"
+                    placeholder="Description"
+                    required>
+
+                <input
+                    type="number"
+                    id="montant"
+                    step="0.01"
+                    placeholder="Montant"
+                    required>
+
+                <select id="type" required>
+                    <option value="depense">Dépense</option>
+                    <option value="revenu">Revenu</option>
+                </select>
+
+                <select id="categorie">
+
+                    <option>Alimentation</option>
+                    <option>Transport</option>
+                    <option>Logement</option>
+                    <option>Loisirs</option>
+                    <option>Salaire</option>
+                    <option>Autre</option>
+
+                </select>
+
+                <input
+                    type="file"
+                    id="pieceJointe">
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn-success">
+
+                Ajouter
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- RECHERCHE -->
+
+    <section class="panel">
+
+        <h2>Recherche</h2>
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Rechercher une transaction">
+
+    </section>
+
+    <!-- ALERTES -->
+
+    <section id="alertContainer">
+
+    </section>
+
+    <!-- GRAPHIQUE -->
+
+    <section class="panel">
+
+        <h2>Répartition du budget</h2>
+
+        <canvas id="budgetChart"></canvas>
+
+    </section>
+
+    <!-- TABLEAU -->
+
+    <section class="panel">
+
+        <div class="table-header">
+
+            <h2>Transactions</h2>
+
+            <button
+                id="exportBtn"
+                class="btn-primary">
+
+                Export CSV
+            </button>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table id="transactionsTable">
+
+                <thead>
+
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Catégorie</th>
+                        <th>Montant</th>
+                        <th>Pièce</th>
+                        <th>Actions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="transactionsBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<!-- MODAL ÉDITION -->
+
+<div id="editModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <h2>Modifier transaction</h2>
+
+        <form id="editForm">
+
+            <input type="hidden" id="editId">
+
+            <input
+                type="date"
+                id="editDate">
+
+            <input
+                type="text"
+                id="editDescription">
+
+            <input
+                type="number"
+                id="editMontant">
+
+            <select id="editType">
+                <option value="depense">Dépense</option>
+                <option value="revenu">Revenu</option>
+            </select>
+
+            <select id="editCategorie">
+
+                <option>Alimentation</option>
+                <option>Transport</option>
+                <option>Logement</option>
+                <option>Loisirs</option>
+                <option>Salaire</option>
+                <option>Autre</option>
+
+            </select>
+
+            <div class="modal-buttons">
+
+                <button
+                    type="submit"
+                    class="btn-success">
+
+                    Sauvegarder
+                </button>
+
+                <button
+                    type="button"
+                    id="closeModal"
+                    class="btn-danger">
+
+                    Annuler
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 
-<div class="card">
+<footer>
 
-<h3>Dépensé</h3>
+    <p>
+        Budget Global PWA • GitHub Pages + Google Sheets
+    </p>
 
-<span id="spent">
-0 $
-</span>
+</footer>
 
-</div>
-
-<div class="card">
-
-<h3>Restant</h3>
-
-<span id="remaining">
-0 $
-</span>
-
-</div>
-
-</section>
-
-<input
- id="search"
- placeholder="Recherche">
-
-<table id="transactions">
-
-<thead>
-
-<tr>
-
-<th>Date</th>
-<th>Description</th>
-<th>Montant</th>
-
-</tr>
-
-</thead>
-
-<tbody></tbody>
-
-</table>
-<section class="card">
-
-<h2>Nouvelle transaction</h2>
-
-<form id="transactionForm">
-
-<input
-type="date"
-id="date"
-required>
-
-<select id="type">
-
-<option value="depense">
-Dépense
-</option>
-
-<option value="revenu">
-Revenu
-</option>
-
-</select>
-
-<input
-id="description"
-placeholder="Description"
-required>
-
-<input
-id="category"
-placeholder="Catégorie">
-
-<input
-id="amount"
-type="number"
-step="0.01"
-placeholder="Montant"
-required>
-
-<button type="submit">
-
-Ajouter
-
-</button>
-
-</form>
-
-</section>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
 <script src="js/app.js"></script>
 
 </body>
